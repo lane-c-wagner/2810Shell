@@ -28,11 +28,11 @@ class Shell:
 		elif pid > 0:
 			while True:
 				#If background requested
-				pid, status = os.waitpid(pid, 0)
 				if bg:
 					break
 				#If not background
 				else:
+					pid, status = os.waitpid(pid, 0)
 					pid = 0	
 					if os.WIFEXITED(status) or os.WIFSIGNALED(status):
 						break
@@ -58,11 +58,17 @@ class Shell:
 			
 			#check background child process
 			for i in self.pids:
-				result = os.waitpid(pid, os.WNOHANG)
-				#has exited
-				if result[0] != 0:
-					print "Child " + result[0] + " has exited with status " + result[1]
+				try:	
+					result = os.waitpid(pid, os.WNOHANG)
+
+					#if it has exited
+					if result[0] != 0:
+						print "Child " + result[0] + " has exited with status " + result[1]
+						self.pids.remove(i)
+
+				except:
 					self.pids.remove(i)
+
 			#display prompt
 			sys.stdout.write('> ')
 			sys.stdout.flush()
@@ -75,6 +81,10 @@ class Shell:
 				if e.__class__.__name__ == "EOFError":
 					break	
 			
+			#check if no input
+			if func == "":
+				continue
+
 			#check if bg requested
 			if func[-1] == "&":
 				bg = True
